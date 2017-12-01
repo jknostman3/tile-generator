@@ -71,14 +71,14 @@ class PackageBoshRelease(BasePackage):
 
 class PackageDockerBosh(BasePackage):
     package_type = 'docker-bosh'
-    flags = [flag.DockerBosh, flag.Docker]
+    flags = [flag.DockerBosh] # flag.Docker
     _schema = {
         'docker_images': {'required': True},
         'routes': {'required': False, 'type': 'list', 'schema': {'type': 'dict', 'schema': {
             'prefix': {'required': True},
             'port': {'required': True},}}},
-        'manifest': {'type': 'dict', 'allow_unknown': True, 'required': True, 
-                     'coerce': _to_yaml, 'schema': {
+        'manifest': {'type': 'dict', 'allow_unknown': True, 'required': True, 'coerce': _to_yaml,
+                     'keyschema': {'forbidden': ['path']}, 'schema': {
             'container': {'type': 'list', 'schema': {'type': 'dict', 'schema': {
                 'name': {'type': 'string', 'required': True, 'regex': '^[a-z][a-zA-Z0-9_]*$'},
                 'env_file': {'type': 'list', 'default': [], 'schema': {
@@ -122,12 +122,20 @@ class PackageExternalBroker(BasePackage):
 
 class PackageDockerApp(BasePackage):
     package_type = 'docker-app'
-    flags = [flag.Cf, flag.App, flag.Docker] # flag.DockerApp
+    flags = [flag.Cf, flag.App] # flag.Docker, flag.DockerApp
+    _schema = {
+        'manifest': {'type': 'dict', 'allow_unknown': True, 'required': True,
+                     'keyschema': {'forbidden': ['path']}, 'schema': {}},
+    }
 
 
 class PackageDockerAppBroker(BasePackage):
     package_type = 'docker-app-broker'
-    flags = [flag.Cf, flag.App, flag.Broker, flag.Docker] # flag.BrokerApp, flag.DockerApp,
+    flags = [flag.Cf, flag.App, flag.Broker] # flag.Docker flag.BrokerApp, flag.DockerApp,
+    _schema = {
+        'manifest': {'type': 'dict', 'allow_unknown': True, 'required': True,
+                     'keyschema': {'forbidden': ['path']}, 'schema': {}},
+    }
 
 
 class PackageBlob(BasePackage):

@@ -569,7 +569,7 @@ class Config(dict):
 	# 		package['properties'] = {packagename: properties}
 
 	def normalize_jobs(self):
-		for release in self.get('releases', []):
+		for release in self.get('releases', []).values():
 			for job in release.get('jobs', []):
 				job['type'] = job.get('type', job['name'])
 				job['template'] = job.get('template', job['type'])

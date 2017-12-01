@@ -103,11 +103,6 @@ class Cf(FlagBase):
             }
         ]
 
-class Docker(FlagBase):
-    @classmethod
-    def _apply(self, config_obj, package, release):
-        package['is_docker'] = True
-
 
 class DockerBosh(FlagBase):
     @classmethod
@@ -191,7 +186,7 @@ class App(FlagBase):
                 release['consumes_cross_deployment'][link_type] = link
         manifest = package.get('manifest', { 'name': package['name'] })
         package['app_manifest'] = manifest
-        if not package.get('is_docker'):
+        if manifest.get('path'):
             config_obj['compilation_vm_disk_size'] = max(
                 config_obj['compilation_vm_disk_size'], 
                 4 * _update_compilation_vm_disk_size(manifest))
