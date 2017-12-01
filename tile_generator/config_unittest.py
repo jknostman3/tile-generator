@@ -33,6 +33,172 @@ def capture_output():
 	finally:
 		sys.stdout, sys.stderr = old_out, old_err
 
+
+class BaseTest(unittest.TestCase):
+	def setUp(self):
+		self.latest_stemcell_patcher = mock.patch('tile_generator.config.Config.latest_stemcell', return_value='1234')
+		self.latest_stemcell = self.latest_stemcell_patcher.start()
+		
+		self._update_compilation_vm_disk_size_patcher = mock.patch('tile_generator.config.package_definitions.flag._update_compilation_vm_disk_size')
+		self._update_compilation_vm_disk_size = self._update_compilation_vm_disk_size_patcher.start()
+
+		self.icon_file = tempfile.NamedTemporaryFile()
+		self.config = Config(name='validname', icon_file=self.icon_file.name,
+												 label='some_label', description='This is required')
+
+	def tearDown(self):
+		self.latest_stemcell_patcher.stop()
+		self._update_compilation_vm_disk_size_patcher.stop()
+		self.icon_file.close()
+
+
+class TestConfigValidation(BaseTest):
+	def test_accepts_minimal_config(self):
+		self.config.validate()
+
+	def test_latest_stemcell_config(self):
+		# Disable patching latest_stemcell
+		self.latest_stemcell_patcher.stop()
+
+		self.config.validate()
+
+		# Enable so that tearDown does not barf
+		self.latest_stemcell_patcher.start()
+
+		# Ensure we are using the real latest_stemcell
+		self.assertNotEquals(self.config['stemcell_criteria']['version'], '1234')
+
+	def test_requires_package_names(self):
+		with self.assertRaises(SystemExit):
+			with capture_output() as (out,err):
+				self.config['packages'] = [{'name': 'validname', 'type': 'app', 'manifest': {'buildpack': 'app_buildpack'}}, {'type': 'app', 'manifest': {'buildpack': 'app_buildpack'}}]
+				self.config.validate()
+		self.assertIn("'name': ['required field']", err.getvalue())
+
+	def test_requires_package_types(self):
+		with self.assertRaises(SystemExit):
+			with capture_output() as (out,err):
+				self.config['packages'] = [{'name': 'validname', 'type': 'app', 'manifest': {'buildpack': 'app_buildpack'}}, {'name': 'name'}]
+				self.config.validate()
+		self.assertIn("has invalid type None\nvalid types are", err.getvalue())
+
+	def test_refuses_invalid_type(self):
+		with self.assertRaises(SystemExit):
+			with capture_output() as (out,err):
+				self.config['packages'] = [{'name': 'validname', 'type': 'nonsense'}]
+				self.config.validate()
+		self.assertIn("has invalid type nonsense\nvalid types are", err.getvalue())
+
+	def test_accepts_valid_package_name(self):
+		self.config['packages'] = [{'name': 'validname', 'type': 'app', 'manifest': {'buildpack': 'app_buildpack'}}]
+		self.config.validate()
+
+	def test_accepts_valid_package_name_with_hyphen(self):
+		self.config['packages'] = [{'name': 'valid-name', 'type': 'app', 'manifest': {'buildpack': 'app_buildpack'}}]
+		self.config.validate()
+
+	def test_accepts_valid_package_name_with_hyphens(self):
+		self.config['packages'] = [{'name': 'valid-name-too', 'type': 'app', 'manifest': {'buildpack': 'app_buildpack'}}]
+		self.config.validate()
+
+	def test_accepts_valid_package_name_with_number(self):
+		self.config['packages'] = [{'name': 'valid-name-2', 'type': 'app', 'manifest': {'buildpack': 'app_buildpack'}}]
+		self.config.validate()
+
+	def test_refuses_spaces_in_package_name(self):
+		with self.assertRaises(SystemExit):
+			self.config['packages'] = [{'name': 'invalid name', 'type': 'app', 'manifest': {'buildpack': 'app_buildpack'}}]
+			self.config.validate()
+
+	def test_refuses_capital_letters_in_package_name(self):
+		with self.assertRaises(SystemExit):
+			self.config['packages'] = [{'name': 'Invalid', 'type': 'app', 'manifest': {'buildpack': 'app_buildpack'}}]
+			self.config.validate()
+
+	def test_refuses_underscores_in_package_name(self):
+		with self.assertRaises(SystemExit):
+			self.config['packages'] = [{'name': 'invalid_name', 'type': 'app', 'manifest': {'buildpack': 'app_buildpack'}}]
+			self.config.validate()
+
+	def test_refuses_package_name_starting_with_number(self):
+		with self.assertRaises(SystemExit):
+			self.config['packages'] = [{'name': '1-invalid-name', 'type': 'app', 'manifest': {'buildpack': 'app_buildpack'}}]
+			self.config.validate()
+
+	def test_requires_product_versions(self):
+		self.config['packages'] = [{'name': 'packagename', 'type': 'app', 'manifest': {'buildpack': 'app_buildpack'}}]
+		self.config.validate()
+		self.assertIn('requires_product_versions', self.config.tile_metadata)
+		requires_product_versions = self.config.tile_metadata['requires_product_versions']
+		self.assertIn('name', requires_product_versions[0])
+		self.assertIn('version', requires_product_versions[0])
+
+	def test_refuses_docker_bosh_package_without_image(self):
+		with self.assertRaises(SystemExit):
+			self.config['packages'] = [{
+				'name': 'bad-docker-bosh',
+				'type': 'docker-bosh',
+				'manifest': 'containers: [name: a]'
+			}]
+			self.config.validate()
+
+	def test_accepts_docker_bosh_package_with_image(self):
+		self.config['packages'] = [{
+            'name': 'good-docker-bosh',
+            'type': 'docker-bosh',
+            'docker_images': ['my/image'],
+            'manifest': 'containers: [name: a]'
+        }]
+		self.config.validate()
+
+	def test_refuses_docker_bosh_package_without_manifest(self):
+		with self.assertRaises(SystemExit):
+			self.config['packages'] = [{
+                'name': 'bad-docker-bosh',
+                'type': 'docker-bosh',
+                'docker_images': ['my/image']
+            }]
+			self.config.validate()
+
+	def test_refuses_docker_bosh_package_with_bad_manifest(self):
+		with self.assertRaises(SystemExit):
+			self.config['packages'] = [{
+                'name': 'bad-docker-bosh',
+                'type': 'docker-bosh',
+                'docker_images': ['my/image'],
+                'manifest': '!^%'
+            }]
+			self.config.validate()
+
+	def test_validates_docker_bosh_container_names(self):
+		with self.assertRaises(SystemExit):
+			self.config['packages'] = [{
+				'name': 'good-docker-bosh',
+				'type': 'docker-bosh',
+				'docker_images': ['cholick/foo'],
+				'manifest': '''
+		containers:
+		- name: bad-name
+		  image: "cholick/foo"
+		  bind_ports:
+		  - '9000:9000'
+	'''
+			}]
+			self.config.validate()
+
+	def test_requires_buildpack_for_app_broker(self):
+		with self.assertRaises(SystemExit):
+			self.config['packages'] = [{'name': 'packagename', 'type': 'app', 'manifest': {}}]
+			self.config.validate()
+		with self.assertRaises(SystemExit):
+			self.config['packages'] = [{'name': 'packagename', 'type': 'app-broker', 'manifest': {}}]
+			self.config.validate()
+
+	def test_buildpack_not_required_for_docker_app(self):
+		self.config['packages'] = [{'name': 'packagename', 'type': 'docker-app'}]
+		self.config.validate()
+
+
 class TestVersionMethods(unittest.TestCase):
 
 	def test_accepts_valid_semver(self):
@@ -138,340 +304,196 @@ class TestVersionMethods(unittest.TestCase):
 		self.assertEquals(history.get('history')[0], '0.0.1')
 		self.assertEquals(history.get('history')[1], '0.0.2')
 
-class TestConfigValidation(unittest.TestCase):
 
-	def setUp(self):
-		self.icon_file = tempfile.NamedTemporaryFile()
-		self.config = Config(name='validname', icon_file=self.icon_file.name)
-
-	def tearDown(self):
-		self.icon_file.close()
-
-	def test_accepts_minimal_config(self):
-		self.config.validate()
-
-	def test_requires_package_names(self):
-		with self.assertRaises(SystemExit):
-			with capture_output() as (out,err):
-				self.config['packages'] = [{'name': 'validname', 'type': 'app', 'manifest': {'buildpack': 'app_buildpack'}}, {'type': 'app', 'manifest': {'buildpack': 'app_buildpack'}}]
-				self.config.validate()
-		self.assertIn('package is missing mandatory property \'name\'', err.getvalue())
-
-	def test_requires_package_types(self):
-		with self.assertRaises(SystemExit):
-			with capture_output() as (out,err):
-				self.config['packages'] = [{'name': 'validname', 'type': 'app', 'manifest': {'buildpack': 'app_buildpack'}}, {'name': 'name'}]
-				self.config.validate()
-		self.assertIn('package name is missing mandatory property \'type\'', err.getvalue())
-
-	def test_refuses_invalid_type(self):
-		with self.assertRaises(SystemExit):
-			with capture_output() as (out,err):
-				self.config['packages'] = [{'name': 'validname', 'type': 'nonsense'}]
-				self.config.validate()
-		self.assertIn('package validname has invalid type nonsense', err.getvalue())
-
-	def test_accepts_valid_package_name(self):
-		self.config['packages'] = [{'name': 'validname', 'type': 'app', 'manifest': {'buildpack': 'app_buildpack'}}]
-		self.config.validate()
-
-	def test_accepts_valid_package_name_with_hyphen(self):
-		self.config['packages'] = [{'name': 'valid-name', 'type': 'app', 'manifest': {'buildpack': 'app_buildpack'}}]
-		self.config.validate()
-
-	def test_accepts_valid_package_name_with_hyphens(self):
-		self.config['packages'] = [{'name': 'valid-name-too', 'type': 'app', 'manifest': {'buildpack': 'app_buildpack'}}]
-		self.config.validate()
-
-	def test_accepts_valid_package_name_with_number(self):
-		self.config['packages'] = [{'name': 'valid-name-2', 'type': 'app', 'manifest': {'buildpack': 'app_buildpack'}}]
-		self.config.validate()
-
-	def test_refuses_spaces_in_package_name(self):
-		with self.assertRaises(SystemExit):
-			self.config['packages'] = [{'name': 'invalid name', 'type': 'app', 'manifest': {'buildpack': 'app_buildpack'}}]
-			self.config.validate()
-
-	def test_refuses_capital_letters_in_package_name(self):
-		with self.assertRaises(SystemExit):
-			self.config['packages'] = [{'name': 'Invalid', 'type': 'app', 'manifest': {'buildpack': 'app_buildpack'}}]
-			self.config.validate()
-
-	def test_refuses_underscores_in_package_name(self):
-		with self.assertRaises(SystemExit):
-			self.config['packages'] = [{'name': 'invalid_name', 'type': 'app', 'manifest': {'buildpack': 'app_buildpack'}}]
-			self.config.validate()
-
-	def test_refuses_package_name_starting_with_number(self):
-		with self.assertRaises(SystemExit):
-			self.config['packages'] = [{'name': '1-invalid-name', 'type': 'app', 'manifest': {'buildpack': 'app_buildpack'}}]
-			self.config.validate()
-
-	def test_refuses_docker_bosh_package_without_image(self):
-		with self.assertRaises(SystemExit):
-			self.config['packages'] = [{
-				'name': 'bad-docker-bosh',
-				'type': 'docker-bosh',
-				'manifest': 'containers: [name: a]'
-			}]
-			self.config.validate()
-
-	def test_accepts_docker_bosh_package_with_image(self):
-		self.config['packages'] = [{
-            'name': 'good-docker-bosh',
-            'type': 'docker-bosh',
-            'docker_images': ['my/image'],
-            'manifest': 'containers: [name: a]'
-        }]
-		self.config.validate()
-
-	def test_refuses_docker_bosh_package_without_manifest(self):
-		with self.assertRaises(SystemExit):
-			self.config['packages'] = [{
-                'name': 'bad-docker-bosh',
-                'type': 'docker-bosh',
-                'docker_images': ['my/image']
-            }]
-			self.config.validate()
-
-	def test_refuses_docker_bosh_package_with_bad_manifest(self):
-		with self.assertRaises(SystemExit):
-			self.config['packages'] = [{
-                'name': 'bad-docker-bosh',
-                'type': 'docker-bosh',
-                'docker_images': ['my/image'],
-                'manifest': '!^%'
-            }]
-			self.config.validate()
-
-	def test_validates_docker_bosh_container_names(self):
-		with self.assertRaises(SystemExit):
-			self.config['packages'] = [{
-				'name': 'good-docker-bosh',
-				'type': 'docker-bosh',
-				'docker_images': ['cholick/foo'],
-				'manifest': '''
-		containers:
-		- name: bad-name
-		  image: "cholick/foo"
-		  bind_ports:
-		  - '9000:9000'
-	'''
-			}]
-			self.config.validate()
-
-	def test_requires_buildpack_for_app_broker(self):
-		with self.assertRaises(SystemExit):
-			self.config['packages'] = [{'name': 'packagename', 'type': 'app'}]
-			self.config.validate()
-		with self.assertRaises(SystemExit):
-			self.config['packages'] = [{'name': 'packagename', 'type': 'app-broker'}]
-			self.config.validate()
-
-	def test_buildpack_not_required_for_docker_app(self):
-		self.config['packages'] = [{'name': 'packagename', 'type': 'docker-app'}]
-		self.config.validate()
-
-class TestDefaultOptions(unittest.TestCase):
+class TestDefaultOptions(BaseTest):
 	def test_purge_service_broker_is_true_by_default(self):
-		config = Config({'name': 'tile-generator-unittest'})
-		with mock.patch('tile_generator.config.Config.latest_stemcell', return_value='1234'):
-			config.add_defaults()
-		self.assertTrue(config['purge_service_brokers'])
+		self.config.update({'name': 'tile-generator-unittest'})
+		self.config.validate()
+		self.assertTrue(self.config['purge_service_brokers'])
 
 	def test_purge_service_broker_is_overridden(self):
-		config = Config({'purge_service_brokers': False,
+		self.config.update({'purge_service_brokers': False,
 				 'name': 'tile-generator-unittest'})
-		with mock.patch('tile_generator.config.Config.latest_stemcell', return_value='1234'):
-			config.add_defaults()
-		self.assertFalse(config['purge_service_brokers'])
+		self.config.validate()
+		self.assertFalse(self.config['purge_service_brokers'])
 
 	def test_normalize_jobs_default_job_properties(self):
-		config = Config({
+		self.config.update({
 			'releases': [{
 				'jobs': [{
 					'name': 'my-job'
 				}]
 			}]
 		})
-		config.normalize_jobs()
-		self.assertEqual(config['releases'][0]['jobs'][0]['properties'], {})
+		self.config.normalize_jobs()
+		self.assertEqual(self.config['releases'][0]['jobs'][0]['properties'], {})
 
 	def test_default_metadata_version(self):
-		config = Config({'name': 'my-tile'})
-		with mock.patch('tile_generator.config.Config.latest_stemcell', return_value='1234'):
-			config.add_defaults()
-		self.assertEqual(config['metadata_version'], 1.8)
+		self.config.update({'name': 'my-tile'})
+		self.config.validate()
+		self.assertEqual(self.config['metadata_version'], 1.8)
 
 	def test_default_minimum_version_for_upgrade(self):
-		config = Config({})
-		self.assertEqual(config.tile_metadata['minimum_version_for_upgrade'], '0.0.1')
+		self.config.update({})
+		self.assertEqual(self.config.tile_metadata['minimum_version_for_upgrade'], '0.0.1')
 
 	def test_default_rank(self):
-		config = Config({})
-		self.assertEqual(config.tile_metadata['rank'], 1)
+		self.config.update({})
+		self.assertEqual(self.config.tile_metadata['rank'], 1)
 
 	def test_default_serial(self):
-		config = Config({})
-		self.assertTrue(config.tile_metadata['serial'])
+		self.config.update({})
+		self.assertTrue(self.config.tile_metadata['serial'])
 
 
 @mock.patch('os.path.getsize')
-class TestVMDiskSize(unittest.TestCase):
+class TestVMDiskSize(BaseTest):
 	def test_min_vm_disk_size(self, mock_getsize):
+		# Don't patch _update_compilation_vm_disk_size_patcher
+		self._update_compilation_vm_disk_size_patcher.stop()
 		mock_getsize.return_value = 0
-		config = Config({'name': 'tile-generator-unittest'})
-		manifest = {'path': 'foo'}
-		with mock.patch('tile_generator.config.Config.latest_stemcell', return_value='1234'):
-			config.add_defaults()
-		expected_size = config['compilation_vm_disk_size']
+		self.config.update({'name': 'tile-generator-unittest'})
+		self.config['packages'] = [{
+			'name': 'validname', 'type': 'app', 
+			'manifest': {'buildpack': 'app_buildpack', 'path': 'foo'}
+		}]
+		expected_size = 10240
 		with mock.patch('os.path.exists',return_value = True):
-			config.update_compilation_vm_disk_size(manifest)
-		self.assertEqual(config['compilation_vm_disk_size'], expected_size)
+			self.config.validate()
+
+		# Start so teardown does not break
+		self._update_compilation_vm_disk_size_patcher.start()
+		self.assertEqual(self.config['compilation_vm_disk_size'], expected_size)
 
 	def test_big_default_vm_disk_size(self, mock_getsize):
-		config = Config({'name': 'tile-generator-unittest'})
-		manifest = {'path': 'foo'}
-		with mock.patch('tile_generator.config.Config.latest_stemcell', return_value='1234'):
-			config.add_defaults()
-		package_size = config['compilation_vm_disk_size']
-		mock_getsize.return_value = package_size * 1024 * 1024 # megabytes to bytes.
-		expected_size = 4 * package_size
+		# Don't patch _update_compilation_vm_disk_size_patcher
+		self._update_compilation_vm_disk_size_patcher.stop()
+		self.config.update({'name': 'tile-generator-unittest'})
+		self.config['packages'] = [{
+			'name': 'validname', 'type': 'app', 
+			'manifest': {'buildpack': 'app_buildpack', 'path': 'foo'}
+		}]
+		default_package_size = 10240
+		mock_getsize.return_value = default_package_size * 1024 * 1024 # megabytes to bytes.
+		expected_size = 4 * default_package_size
 		with mock.patch('os.path.exists', return_value=True):
-			config.update_compilation_vm_disk_size(manifest)
-		self.assertEqual(config['compilation_vm_disk_size'], expected_size)
+			self.config.validate()
 
-class TestTileName(unittest.TestCase):
+		# Start so teardown does not break
+		self._update_compilation_vm_disk_size_patcher.start()
+		self.assertEqual(self.config['compilation_vm_disk_size'], expected_size)
+
+class TestTileName(BaseTest):
 	def test_process_name_sets_name_in_tile_metadata(self):
 		name = 'my-tile'
-		config = Config({'name': name})
-		config.process_name()
-		self.assertIn('name', config.tile_metadata)
-		self.assertEqual(config.tile_metadata['name'], name)
+		self.config.update({'name': name})
+		self.config.validate()
+		self.assertIn('name', self.config.tile_metadata)
+		self.assertEqual(self.config.tile_metadata['name'], name)
 
 	def test_requires_product_name(self):
 		with self.assertRaises(SystemExit):
-			config = Config({})
-			config.process_name()
+			self.config.pop('name')
+			self.config.validate()
 
 	def test_accepts_valid_product_name_with_hyphen(self):
-		config = Config({'name': 'valid-name'})
-		config.process_name()
+		self.config.update({'name': 'valid-name'})
+		self.config.validate()
 
 	def test_accepts_valid_product_name_with_hyphens(self):
-		config = Config({'name': 'valid-name-too'})
-		config.process_name()
+		self.config.update({'name': 'valid-name-too'})
+		self.config.validate()
 
 	def test_accepts_valid_product_name_with_number(self):
-		config = Config({'name': 'valid-name-2'})
-		config.process_name()
+		self.config.update({'name': 'valid-name-2'})
+		self.config.validate()
 
 	def test_accepts_valid_product_name_with_one_letter_prefix(self):
-		config = Config({'name': 'p-tile'})
-		config.process_name()
+		self.config.update({'name': 'p-tile'})
+		self.config.validate()
 
 	def test_refuses_spaces_in_product_name(self):
 		with self.assertRaises(SystemExit):
-			config = Config({'name': 'an invalid name'})
-			config.process_name()
+			self.config.update({'name': 'an invalid name'})
+			self.config.validate()
 
 	def test_refuses_capital_letters_in_product_name(self):
 		with self.assertRaises(SystemExit):
-			config = Config({'name': 'Invalid'})
-			config.process_name()
+			self.config.update({'name': 'Invalid'})
+			self.config.validate()
 
 	def test_refuses_underscores_in_product_name(self):
 		with self.assertRaises(SystemExit):
-			config = Config({'name': 'invalid_name'})
-			config.process_name()
+			self.config.update({'name': 'invalid_name'})
+			self.config.validate()
 
 	def test_refuses_product_name_starting_with_number(self):
 		with self.assertRaises(SystemExit):
-			config = Config({'name': '1-invalid-name'})
-			config.process_name()
+			self.config.update({'name': '1-invalid-name'})
+			self.config.validate()
 
-class TestTileSimpleFields(unittest.TestCase):
+class TestTileSimpleFields(BaseTest):
 	def test_requires_label(self):
 		with self.assertRaises(SystemExit):
 			with capture_output() as (out, err):
-				config = Config({})
-				config.process_label()
+				self.config.pop('label')
+				self.config.validate()
 		self.assertIn('label', err.getvalue())
 
 	def test_sets_label(self):
-		config = Config({'label': 'my-label'})
-		config.process_label()
-		self.assertIn('label', config.tile_metadata)
-		self.assertEqual(config.tile_metadata['label'], 'my-label')
+		self.config.update({'label': 'my-label'})
+		self.config.validate()
+		self.assertIn('label',self.config.tile_metadata)
+		self.assertEqual(self.config.tile_metadata['label'], 'my-label')
 
 	def test_requires_description(self):
 		with self.assertRaises(SystemExit):
 			with capture_output() as (out, err):
-				config = Config({})
-				config.process_description()
+				self.config.pop('description')
+				self.config.validate()
 		self.assertIn('description', err.getvalue())
 
 	def test_sets_description(self):
-		config = Config({'description': 'my tile description'})
-		config.process_description()
-		self.assertIn('description', config.tile_metadata)
-		self.assertEqual(config.tile_metadata['description'], 'my tile description')
+		self.config.update({'description': 'my tile description'})
+		self.config.validate()
+		self.assertIn('description',self.config.tile_metadata)
+		self.assertEqual(self.config.tile_metadata['description'], 'my tile description')
 
 	def test_sets_metadata_version(self):
-		config = Config({'metadata_version': 1.8})
-		config.process_metadata_version()
-		self.assertIn('metadata_version', config.tile_metadata)
-		self.assertEqual(config.tile_metadata['metadata_version'], '1.8')
+		self.config.update({'metadata_version': 1.8})
+		self.config.validate()
+		self.assertIn('metadata_version', self.config.tile_metadata)
+		self.assertEqual(self.config.tile_metadata['metadata_version'], '1.8')
 
-class TestTileIconFile(unittest.TestCase):
-	def setUp(self):
-		self.icon_file = tempfile.NamedTemporaryFile()
-		self.config = Config(icon_file=self.icon_file.name)
-
-	def tearDown(self):
-		self.icon_file.close()
-
+class TestTileIconFile(BaseTest):
 	def test_requires_icon_file(self):
 		with self.assertRaises(SystemExit):
 			with capture_output() as (out, err):
 				cfg = Config({})
-				cfg.process_icon_file()
+				cfg.validate()
 		self.assertIn('icon_file', err.getvalue())
 
 	def test_refuses_empty_icon_file(self):
 		with self.assertRaises(SystemExit):
 			with capture_output() as (out, err):
 				self.config['icon_file'] = None
-				self.config.process_icon_file()
+				self.config.validate()
 		self.assertIn('icon_file', err.getvalue())
 
 	def test_refuses_invalid_icon_file(self):
 		with self.assertRaises(SystemExit):
 			with capture_output() as (out, err):
 				self.config['icon_file'] = '/this/file/does/not/exist'
-				self.config.process_icon_file()
+				self.config.validate()
 		self.assertIn('icon_file', err.getvalue())
 
 	def test_sets_icon_image(self):
 		self.icon_file.write('foo')
 		self.icon_file.flush()
-		self.config.process_icon_file()
+		self.config.validate()
 		self.assertIn('icon_image', self.config.tile_metadata)
 		# Base64-encoded string from `echo -n foo | base64`
 		self.assertEqual(self.config.tile_metadata['icon_image'], 'Zm9v')
-
-class TestTileDependencies(unittest.TestCase):
-	def test_requires_product_versions(self):
-		config = Config({'releases': [{'requires_cf_cli': True, 
-																	 'jobs': ['dummy_job',],
-																	 'packages': ['dummy_package',]}]
-									  })
-		config.add_dependencies()
-		self.assertIn('requires_product_versions', config.tile_metadata)
-		requires_product_versions = config.tile_metadata['requires_product_versions']
-		self.assertIn('name', requires_product_versions[0])
-		self.assertIn('version', requires_product_versions[0])
-
 
 if __name__ == '__main__':
 	unittest.main()
