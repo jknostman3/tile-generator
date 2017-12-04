@@ -38,7 +38,7 @@ class BaseTest(unittest.TestCase):
 	def setUp(self):
 		self.latest_stemcell_patcher = mock.patch('tile_generator.config.Config.latest_stemcell', return_value='1234')
 		self.latest_stemcell = self.latest_stemcell_patcher.start()
-		
+
 		self._update_compilation_vm_disk_size_patcher = mock.patch('tile_generator.config.package_definitions.flag._update_compilation_vm_disk_size')
 		self._update_compilation_vm_disk_size = self._update_compilation_vm_disk_size_patcher.start()
 
@@ -195,7 +195,7 @@ class TestConfigValidation(BaseTest):
 			self.config.validate()
 
 	def test_buildpack_not_required_for_docker_app(self):
-		self.config['packages'] = [{'name': 'packagename', 'type': 'docker-app'}]
+		self.config['packages'] = [{'name': 'packagename', 'type': 'docker-app', 'manifest': {}}]
 		self.config.validate()
 
 
@@ -319,14 +319,14 @@ class TestDefaultOptions(BaseTest):
 
 	def test_normalize_jobs_default_job_properties(self):
 		self.config.update({
-			'releases': [{
+			'releases': {'my-job': {
 				'jobs': [{
 					'name': 'my-job'
 				}]
-			}]
+			}}
 		})
 		self.config.normalize_jobs()
-		self.assertEqual(self.config['releases'][0]['jobs'][0]['properties'], {})
+		self.assertEqual(self.config['releases']['my-job']['jobs'][0]['properties'], {})
 
 	def test_default_metadata_version(self):
 		self.config.update({'name': 'my-tile'})
@@ -354,7 +354,7 @@ class TestVMDiskSize(BaseTest):
 		mock_getsize.return_value = 0
 		self.config.update({'name': 'tile-generator-unittest'})
 		self.config['packages'] = [{
-			'name': 'validname', 'type': 'app', 
+			'name': 'validname', 'type': 'app',
 			'manifest': {'buildpack': 'app_buildpack', 'path': 'foo'}
 		}]
 		expected_size = 10240
@@ -370,7 +370,7 @@ class TestVMDiskSize(BaseTest):
 		self._update_compilation_vm_disk_size_patcher.stop()
 		self.config.update({'name': 'tile-generator-unittest'})
 		self.config['packages'] = [{
-			'name': 'validname', 'type': 'app', 
+			'name': 'validname', 'type': 'app',
 			'manifest': {'buildpack': 'app_buildpack', 'path': 'foo'}
 		}]
 		default_package_size = 10240
