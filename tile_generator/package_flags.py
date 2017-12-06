@@ -40,16 +40,14 @@ class BoshRelease(FlagBase):
         properties = {'name': packagename}
         for job in package.get('jobs', []):
             jobname = job['name']
-            if job.get('is_static'):
+            if job.get('static_ip', 0) > 0:
                 properties.update({
                     job['varname']: {
                         'host': '(( .{}.first_ip ))'.format(jobname),
                         'hosts': '(( .{}.ips ))'.format(jobname),
                     },
                 })
-        properties = package.get('properties', {})
-        properties.update({packagename: properties})
-        package['properties'] = properties
+        package['properties'] = {packagename: properties}
 
     @classmethod
     def generate_release(self, config_obj, package):
@@ -150,7 +148,7 @@ class DockerBosh(FlagBase):
         for container in package['manifest']['containers']:
             envfile = container.get('env_file', [])
             envfile.append('/var/vcap/jobs/docker-bosh-{}/bin/opsmgr.env'.format(package['name']))
-    
+
 
 class Decorator(FlagBase):
     @classmethod
@@ -188,7 +186,7 @@ class App(FlagBase):
         package['app_manifest'] = manifest
         if manifest.get('path'):
             config_obj['compilation_vm_disk_size'] = max(
-                config_obj['compilation_vm_disk_size'], 
+                config_obj['compilation_vm_disk_size'],
                 4 * _update_compilation_vm_disk_size(manifest))
 
         packagename = package['name']
@@ -197,7 +195,7 @@ class App(FlagBase):
             {packagename: {
             'name': packagename,
             'app_manifest': package['app_manifest'],
-            'auto_services': package.get('auto_services', []),  
+            'auto_services': package.get('auto_services', []),
         }})
         package['properties'] = properties
 

@@ -81,7 +81,7 @@ def merge_dict(dct, merge_dct):
 		else:
 			dct[k] = copy.deepcopy(merge_dct[k])
 
-				
+
 class Config(dict):
 
 	def __init__(self, *arg, **kw):
@@ -159,6 +159,10 @@ class Config(dict):
 				print('tile.yml property "icon_file" must be a path to an image file', file=sys.stderr)
 				sys.exit(1)
 
+		def wat(stuff):
+			import ipdb; ipdb.set_trace()
+			pass
+
 		schema = {
 			'name': {'type': 'string', 'required': True, 'regex': '[a-z][a-z0-9]*(-[a-z0-9]+)*$'},
 			'label': {'type': 'string', 'required': True},
@@ -175,17 +179,19 @@ class Config(dict):
 			'compilation_vm_disk_size': {'type': 'number', 'default': 10240},
 			'purge_service_brokers': {'type': 'boolean', 'default': True},
 			'forms': {'type': 'list', 'default': [], 'schema': {
-				'properties': {'type': 'list', 'default': [], 'schema': {
-					'configurable': {'type': 'boolean', 'default': True}}}}},
-			'service_plan_forms': {'type': 'list', 'default': [], 'schema': {
-				'variable_name': {'type': 'string', 'default_setter': lambda doc: doc['name'].upper()}}},
+				'type': 'dict', 'default': {}, 'schema': {
+					'variable_name': {'type': 'string', 'required': True, 'default_setter': lambda doc: doc['name'].upper()},
+					'properties': {'type': 'list', 'default': [], 'schema': {
+						'type': 'dict', 'default': {}, 'schema': {
+							'configurable': {'type': 'boolean', 'default': True}}}}}}},
+			'service_plan_forms': {'type': 'list', 'default': [], 'schema': {}},
 			'packages': {'type': 'list', 'schema': {
 				'type': 'dict', 'schema': {
 					# Rename `type` in packages to `package-type` to not trip up cerberus
 					'type': {'rename': 'package-type'}}}},
 		}
 
-
+		import ipdb; ipdb.set_trace()
 		self.update(self._validator.validate(self, schema))
 
 
@@ -212,21 +218,23 @@ class Config(dict):
 	def validate(self):
 		self._validate_base_config()
 
-		# This could be handled in the base config schema with a `oneof` 
+		# TODO: This should be handled differently
+		for form in self.get('forms', []):
+			properties = form.get('properties', [])
+			self['all_properties'] += properties
+
+		# This could be handled in the base config schema with a `oneof`
 		# for `packages` however errors are not very human readable
 		for package in self.get('packages', []):
 			self._validate_package(package)
 			self._apply_package_flags(self, package)
 			self._nomalize_package_file_lists(package)
+			if not package['properties'].values()[0].get('name'):
+				import ipdb; ipdb.set_trace()
+			self['all_properties'] += package['properties'].values()
 
-		# TODO: 
-		# self['all_properties'] += properties
-		# for form in self.get('forms', []):
-		# 	properties = form.get('properties', [])
-		# 	for property in properties:
-		# 		if 'configurable' not in property:
-		# 			property['configurable'] = True
-		# 	self['all_properties'] += properties
+
+
 
 		# TODO: wtf is going on?
 		# for property in self['all_properties']:
@@ -243,13 +251,12 @@ class Config(dict):
 
 		#THis is for bosh_release packages
 		#job['varname'] = job['name'].lower().replace('-','_')
-		#job['is_static'] = job.get('static_ip', 0) > 0
 
-		
 
-		
 
-		
+
+
+
 
 		# TODO: figure out how to do this more nicely
 		self.tile_metadata['name'] = self['name']
@@ -258,7 +265,7 @@ class Config(dict):
 		self.tile_metadata['icon_image'] = self['icon_file']
 		self.tile_metadata['metadata_version'] = str(self['metadata_version'])
 
-		
+
 
 
 		# class CustomValidator(cerberus.Validator):
@@ -293,7 +300,7 @@ class Config(dict):
 		# 	if value == package_name:
 		# 		error(field, 'duplicate bosh release', package_name, 'in configuration')
 
-		
+
 			# @classmethod
 			# def generate_release(self, package):
 			# 	if package.get('is_bosh_release'):
@@ -314,9 +321,9 @@ class Config(dict):
 			# 	self['releases'][release_name] = release
 
 
-		
 
-				
+
+
 
 
 

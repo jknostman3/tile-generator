@@ -14,14 +14,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import mock
+import os
 import unittest
-from . import config
-from .config import Config
 import sys
 import tempfile
+import yaml
+
 from contextlib import contextmanager
 from StringIO import StringIO
-import mock
+
+from . import config
+from .config import Config
+
 
 @contextmanager
 def capture_output():
@@ -50,6 +55,51 @@ class BaseTest(unittest.TestCase):
 		self.latest_stemcell_patcher.stop()
 		self._update_compilation_vm_disk_size_patcher.stop()
 		self.icon_file.close()
+
+
+@mock.patch('tile_generator.config.Config.read_history')
+class TestUltimateForm(BaseTest):
+	def test_diff_final_config_obj(self, mock_read_history):
+		test_path = '/'.join(os.path.abspath(__file__).split('/')[:-1])
+		cfg_file_path = os.path.join(test_path, 'test_sample_tile.yml')
+
+		with mock.patch('tile_generator.config.CONFIG_FILE', cfg_file_path):
+			cfg = self.config.read()
+		cfg.set_version(None)
+		cfg.set_verbose(False)
+		cfg.set_sha1(False)
+		cfg.set_cache(None)
+
+		with open(test_path + '/test_config_expected_output', 'r') as f:
+			expected = yaml.load(f.read())
+
+		expected.pop('icon_file')
+
+		def comparer(expected, given, path):
+			if type(expected) is list:
+				for i in range(len(expected)):
+					if type(expected[i]) is dict or type(expected[i]) is list:
+						try:
+							comparer(expected[i], given[i], path % i + '[%s]')
+						except IndexError:
+							raise AssertionError('The value at "%s" is missing and should be:\n"%s"' % (path % i, expected[i]))
+					else:
+						if not expected[i] in given:
+							raise AssertionError('The value at "%s" is missing and should be:\n"%s"' % (path % i, expected[i]))
+						else:
+							given.pop(i)
+
+			if type(expected) is dict:
+				for k,v in expected.items():
+					if type(v) is dict or type(v) is list:
+						comparer(v, given.get(k), path % k + '[%s]')
+					else:
+						if given.get(k) != v:
+							import ipdb; ipdb.set_trace()
+						self.assertEquals(given.get(k), v,
+									  	  'The value at "%s" should be:\n"%s"\nBut, instead is:\n"%s"' % (path % k, v, given.get(k)))
+
+		comparer(expected, cfg, '%s')
 
 
 class TestConfigValidation(BaseTest):
