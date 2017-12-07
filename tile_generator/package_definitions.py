@@ -25,7 +25,8 @@ def _to_yaml(manifest):
 
 class BasePackage(object):
     _schema = {
-        'name': {'type': 'string', 'required': True, 'regex': '[a-z][a-z0-9]*(-[a-z0-9]+)*$'},
+        # NOTE: Is the '-' to '_' conversion really needed?
+        'name': {'type': 'string', 'required': True, 'regex': '[a-z][a-z0-9]*(_[a-z0-9]+)*$','coerce': lambda v: v.lower().replace('-','_')},
     }
 
     @classmethod
@@ -38,11 +39,11 @@ class BasePackage(object):
             except AttributeError:
                 pass
         return schema
-    
+
     @classmethod
     def normalize_file_lists(self, package):
         files = package.get('files', [])
-        path = package.get('path', None)
+        path = package.get('path')
         if path is not None:
             files += [ { 'path': path } ]
             package['path'] = os.path.basename(path)
@@ -56,7 +57,7 @@ class BasePackage(object):
             files += [ { 'path': 'docker:' + docker_image, 'name': filename } ]
         for file in files:
             file['name'] = file.get('name', os.path.basename(file['path']))
-        
+
         package['files'] = files
 
 
@@ -65,8 +66,13 @@ class PackageBoshRelease(BasePackage):
     flags = [flag.BoshRelease]
     _schema = {
         'jobs': {'type': 'list', 'required': False, 'schema':{'type': 'dict', 'schema': {
-            'name': {'type': 'string', 'required': True, 'regex': '^[a-z][a-zA-Z0-9\-]*$'}}}},
+            'name': {'type': 'string', 'required': True, 'regex': '^[a-z][a-zA-Z0-9\-]*$'},
+            'varname': {'type': 'string', 'default_setter': lambda doc: doc['name'].lower().replace('-','_')}}}},
     }
+
+    @classmethod
+    def normalize_file_lists(self, package):
+        pass
 
 
 class PackageDockerBosh(BasePackage):
@@ -90,7 +96,7 @@ class BaseAppAndAppBroker(BasePackage):
     flags = [flag.Cf, flag.App]
     _schema = {
         'manifest': {'type': 'dict', 'allow_unknown': True, 'required': True,
-                     'keyschema': {'forbidden': ['random-route']}, 
+                     'keyschema': {'forbidden': ['random-route']},
                      'schema': {'buildpack': {'required': True}}},
     }
 

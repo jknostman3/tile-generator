@@ -25,7 +25,8 @@ class FlagBase(object):
             'packages': [],
             'jobs': [] }
         release = config_obj.get('releases', {}).get(release_name, default_release)
-        release['packages'] = release.get('packages', []) + [ package ]
+        if not package in release.get('packages', []):
+            release['packages'] = release.get('packages', []) + [ package ]
 
         if not config_obj.get('releases'):
             config_obj['releases'] = dict()
@@ -68,32 +69,37 @@ class Cf(FlagBase):
         release['is_cf'] = True
         release['requires_cf_cli'] = True
 
-        release['jobs'] += [{
-            'name': 'deploy-all',
-            'type': 'deploy-all',
-            'lifecycle': 'errand',
-            'post_deploy': True
-        }]
-        release['jobs'] += [{
-            'name': 'delete-all',
-            'type': 'delete-all',
-            'lifecycle': 'errand',
-            'pre_delete': True
-        }]
-        config_obj['post_deploy_errands'] = config_obj.get('post_deploy_errands', []) + [{ 'name': 'deploy-all' }]
-        config_obj['pre_delete_errands'] = config_obj.get('pre_delete_errands', []) + [{ 'name': 'delete-all' }]
-        release['packages'] += [{
-            'name': 'cf_cli',
-            'files': [{
-                'name': 'cf-linux-amd64.tgz',
-                'path': 'http://cli.run.pivotal.io/stable?release=linux64-binary&source=github-rel'
-            },{
-                'name': 'all_open.json',
-                'path': template.path('src/templates/all_open.json')
-            }],
-            'template': 'cf_cli',
-            'dir': 'blobs'
-        }]
+        if 'deploy-all' not in [job['name'] for job in release['jobs']]:
+            release['jobs'] += [{
+                'name': 'deploy-all',
+                'type': 'deploy-all',
+                'lifecycle': 'errand',
+                'post_deploy': True
+            }]
+        if 'delete-all' not in [job['name'] for job in release['jobs']]:
+            release['jobs'] += [{
+                'name': 'delete-all',
+                'type': 'delete-all',
+                'lifecycle': 'errand',
+                'pre_delete': True
+            }]
+        if { 'name': 'deploy-all' } not in config_obj.get('post_deploy_errands', []):
+            config_obj['post_deploy_errands'] = config_obj.get('post_deploy_errands', []) + [{ 'name': 'deploy-all' }]
+        if { 'name': 'delete-all' } not in config_obj.get('pre_delete_errands', []):
+            config_obj['pre_delete_errands'] = config_obj.get('pre_delete_errands', []) + [{ 'name': 'delete-all' }]
+        if not 'cf_cli' in [p['name'] for p in release['packages']]:
+            release['packages'] += [{
+                'name': 'cf_cli',
+                'files': [{
+                    'name': 'cf-linux-amd64.tgz',
+                    'path': 'http://cli.run.pivotal.io/stable?release=linux64-binary&source=github-rel'
+                },{
+                    'name': 'all_open.json',
+                    'path': template.path('src/templates/all_open.json')
+                }],
+                'template': 'cf_cli',
+                'dir': 'blobs'
+            }]
         config_obj.tile_metadata['requires_product_versions'] = config_obj.get('requires_product_versions', []) + [
             {
                 'name': 'cf',
@@ -137,17 +143,17 @@ class DockerBosh(FlagBase):
             }
 
         packagename = package['name']
-        properties = package.get('properties', {})
-        properties.update(
-            {packagename: {
-            'name': packagename,
+        properties = package.get('properties', {packagename: {}})
+        properties[packagename].update(
+            {'name': packagename,
             'host': '(( .docker-bosh-{}.first_ip ))'.format(packagename),
             'hosts': '(( .docker-bosh-{}.ips ))'.format(packagename),
-        }})
+        })
         package['properties'] = properties
         for container in package['manifest']['containers']:
             envfile = container.get('env_file', [])
             envfile.append('/var/vcap/jobs/docker-bosh-{}/bin/opsmgr.env'.format(package['name']))
+            container['env_file'] = envfile
 
 
 class Decorator(FlagBase):
@@ -190,13 +196,12 @@ class App(FlagBase):
                 4 * _update_compilation_vm_disk_size(manifest))
 
         packagename = package['name']
-        properties = package.get('properties', {})
-        properties.update(
-            {packagename: {
-            'name': packagename,
+        properties = package.get('properties', {packagename: {}})
+        properties[packagename].update(
+            {'name': packagename,
             'app_manifest': package['app_manifest'],
             'auto_services': package.get('auto_services', []),
-        }})
+        })
         package['properties'] = properties
 
 
@@ -204,14 +209,13 @@ class ExternalBroker(FlagBase):
     @classmethod
     def _apply(self, config_obj, package, release):
         packagename = package['name']
-        properties = package.get('properties', {})
-        properties.update(
-            {packagename: {
-            'name': packagename,
+        properties = package.get('properties', {packagename: {}})
+        properties[packagename].update(
+            {'name': packagename,
             'url': '(( .properties.{}_url.value ))'.format(packagename),
             'user': '(( .properties.{}_user.value ))'.format(packagename),
             'password': '(( .properties.{}_password.value ))'.format(packagename),
-        }})
+        })
         package['properties'] = properties
 
 
@@ -219,12 +223,11 @@ class Broker(FlagBase):
     @classmethod
     def _apply(self, config_obj, package, release):
         packagename = package['name']
-        properties = package.get('properties', {})
-        properties.update(
-            {packagename: {
-            'name': packagename,
+        properties = package.get('properties', {packagename: {}})
+        properties[packagename].update(
+            {'name': packagename,
             'enable_global_access_to_plans': '(( .properties.{}_enable_global_access_to_plans.value ))'.format(packagename),
-        }})
+        })
         package['properties'] = properties
 
 
@@ -232,10 +235,9 @@ class Buildpack(FlagBase):
     @classmethod
     def _apply(self, config_obj, package, release):
         packagename = package['name']
-        properties = package.get('properties', {})
-        properties.update(
-            {packagename: {
-            'name': packagename,
-            'enable_global_access_to_plans': '(( .properties.{}_enable_global_access_to_plans.value ))'.format(packagename),
-        }})
+        properties = package.get('properties', {packagename: {}})
+        properties[packagename].update(
+            {'name': packagename,
+            'buildpack_order': '(( .properties.{}_buildpack_order.value ))'.format(packagename),
+        })
         package['properties'] = properties

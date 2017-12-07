@@ -171,7 +171,7 @@ class Config(dict):
 			'metadata_version': {'type': 'number', 'default': 1.8},
 			'stemcell_criteria': {'type': 'dict', 'default': self.default_stemcell(), 'schema': {
 				'os': {'type': 'string'}, 'version': {'type': 'string'}}},
-			'all_properties': {'type': 'list', 'default': []},
+			'all_properties': {'type': 'list', 'default_setter': lambda doc: doc.get('properties', [])},
 			'org': {'type': 'string', 'default_setter': lambda doc: doc['name'] + '-org'},
 			'space': {'type': 'string', 'default_setter': lambda doc: doc['name'] + '-space'},
 			'apply_open_security_group': {'type': 'boolean', 'default': False},
@@ -180,18 +180,18 @@ class Config(dict):
 			'purge_service_brokers': {'type': 'boolean', 'default': True},
 			'forms': {'type': 'list', 'default': [], 'schema': {
 				'type': 'dict', 'default': {}, 'schema': {
-					'variable_name': {'type': 'string', 'required': True, 'default_setter': lambda doc: doc['name'].upper()},
 					'properties': {'type': 'list', 'default': [], 'schema': {
 						'type': 'dict', 'default': {}, 'schema': {
 							'configurable': {'type': 'boolean', 'default': True}}}}}}},
-			'service_plan_forms': {'type': 'list', 'default': [], 'schema': {}},
+			'service_plan_forms': {'type': 'list', 'default': [], 'schema': {
+				'type': 'dict', 'default': {}, 'schema': {
+					'variable_name': {'type': 'string', 'required': True, 'default_setter': lambda doc: doc['name'].upper()}}}},
 			'packages': {'type': 'list', 'schema': {
 				'type': 'dict', 'schema': {
 					# Rename `type` in packages to `package-type` to not trip up cerberus
 					'type': {'rename': 'package-type'}}}},
 		}
 
-		import ipdb; ipdb.set_trace()
 		self.update(self._validator.validate(self, schema))
 
 
@@ -229,24 +229,16 @@ class Config(dict):
 			self._validate_package(package)
 			self._apply_package_flags(self, package)
 			self._nomalize_package_file_lists(package)
-			if not package['properties'].values()[0].get('name'):
-				import ipdb; ipdb.set_trace()
-			self['all_properties'] += package['properties'].values()
 
 
-
-
-		# TODO: wtf is going on?
-		# for property in self['all_properties']:
-		# 	property['name'] = property['name'].lower().replace('-','_')
-		# 	default = property.get('default', property.pop('value', None)) # NOTE this intentionally removes property['value']
-		# 	if default is not None:
-		# 		property['default'] = default
-		# 	property['configurable'] = property.get('configurable', False)
-		# 	property['optional'] = property.get('optional', False)
-
-		#This is for all packages
-		# package['name'] = package['name'].lower().replace('-','_')
+		# TODO: wtf is going on here and why?
+		for property in self['all_properties']:
+			property['name'] = property['name'].lower().replace('-','_')
+			default = property.get('default', property.pop('value', None)) # NOTE this intentionally removes property['value']
+			if default is not None:
+				property['default'] = default
+			property['configurable'] = property.get('configurable', False)
+			property['optional'] = property.get('optional', False)
 
 
 		#THis is for bosh_release packages
@@ -584,6 +576,10 @@ class Config(dict):
 				job['manifest'] = self.build_job_manifest(job)
 
 	def build_job_manifest(self, job):
+		# TODO: This whole thing needs to be changed to new world order
+		# This should not have to happen
+		from .package_flags import ExternalBroker, Broker
+
 		manifest = {
 			'domain': '(( ..cf.cloud_controller.system_domain.value ))',
 			'app_domains': ['(( ..cf.cloud_controller.apps_domain.value ))'],
@@ -610,8 +606,9 @@ class Config(dict):
 		for service_plan_form in self.get('service_plan_forms', []):
 			manifest[service_plan_form['name']] = '(( .properties.{}.value ))'.format(service_plan_form['name'])
 		for package in self.get('packages', []):
+			package_flags = self._get_package_def(package).flags
 			merge_dict(manifest, package['properties'])
-			if job.get('type') == 'deploy-all' and package.get('is_external_broker'):
+			if job.get('type') == 'deploy-all' and ExternalBroker in package_flags:
 				merge_dict(manifest, {
 					package['name']: {
 						'url': '(( .properties.{}_url.value ))'.format(pakage['name']),
@@ -619,7 +616,7 @@ class Config(dict):
 						'password': '(( .properties.{}_password.value ))'.format(pakage['name']),
 					}
 				})
-			elif job.get('type') == 'deploy-all' and package.get('is_broker'):
+			elif job.get('type') == 'deploy-all' and Broker in package_flags:
 				merge_dict(manifest, {
 					package['name']: {
 						'user': '(( .{}.app_credentials.identity ))'.format(job['name']),
