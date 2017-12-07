@@ -66,6 +66,7 @@ class BoshRelease(FlagBase):
 class Cf(FlagBase):
     @classmethod
     def _apply(self, config_obj, package, release):
+        package['is_cf'] = True
         release['is_cf'] = True
         release['requires_cf_cli'] = True
 

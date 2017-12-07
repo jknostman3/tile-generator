@@ -219,10 +219,6 @@ class Config(dict):
 			property['configurable'] = property.get('configurable', False)
 			property['optional'] = property.get('optional', False)
 
-
-		#THis is for bosh_release packages
-		#job['varname'] = job['name'].lower().replace('-','_')
-
 		# TODO: figure out how to do this more nicely
 		self.tile_metadata['name'] = self['name']
 		self.tile_metadata['label'] = self['label']
