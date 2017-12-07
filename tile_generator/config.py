@@ -188,6 +188,7 @@ class Config(dict):
 					'variable_name': {'type': 'string', 'required': True, 'default_setter': lambda doc: doc['name'].upper()}}}},
 			'packages': {'type': 'list', 'schema': {
 				'type': 'dict', 'schema': {
+					'name': {'type': 'string', 'required': True, 'regex': '[a-z][a-z0-9]*(-[a-z0-9]+)*$'},
 					# Rename `type` in packages to `package-type` to not trip up cerberus
 					'type': {'rename': 'package-type'}}}},
 		}
