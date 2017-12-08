@@ -137,10 +137,6 @@ class Config(dict):
 				print('tile.yml property "icon_file" must be a path to an image file', file=sys.stderr)
 				sys.exit(1)
 
-		def wat(stuff):
-			import ipdb; ipdb.set_trace()
-			pass
-
 		schema = {
 			'name': {'type': 'string', 'required': True, 'regex': '[a-z][a-z0-9]*(-[a-z0-9]+)*$'},
 			'label': {'type': 'string', 'required': True},
@@ -225,6 +221,8 @@ class Config(dict):
 		self.tile_metadata['description'] = self['description']
 		self.tile_metadata['icon_image'] = self['icon_file']
 		self.tile_metadata['metadata_version'] = str(self['metadata_version'])
+		# Note: tile.py uses self['stemcell_criteria']
+		self.tile_metadata['stemcell_criteria'] = self['stemcell_criteria']
 
 	def default_stemcell(self):
 		stemcell_criteria = self.get('stemcell_criteria', {})

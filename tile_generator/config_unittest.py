@@ -74,12 +74,12 @@ class TestUltimateForm(BaseTest):
 		with open(test_path + '/test_config_expected_output', 'r') as f:
 			expected_output = yaml.load(f.read())
 
-		ignored_keys = ['history', 'icon_file', 'compilation_vm_disk_size', 'is_cf', 'is_app' ,'requires_cf_cli',
-						'is_broker_app', 'is_broker', 'is_buildpack', 'is_decorator', 'is_docker_app',
-						'requires_meta_buildpack', 'is_docker', 'is_docker_bosh', 'is_static',
-						'requires_docker_bosh', 'is_bosh_release', 'version']
+		ignored_keys = ['history', 'icon_file', 'compilation_vm_disk_size','requires_cf_cli',
+						'is_broker_app', 'is_decorator',
+						'requires_meta_buildpack', 'is_static',
+						'requires_docker_bosh', 'version']
 
-		# Massage expected output to be compared
+		# Remove obsolete keys from expected output
 		def remove_ignored_keys(obj):
 			if type(obj) is dict:
 				for k,v in obj.items():
@@ -90,18 +90,32 @@ class TestUltimateForm(BaseTest):
 				for item in obj:
 					remove_ignored_keys(item)
 
+		def fix_path(obj):
+			for release in obj['releases']:
+				for package in release.get('packages', []):
+					for f in package.get('files', []):
+						if 'tile_generator/templates/src/common/utils.sh' in f.get('path'):
+							f['path'] = 'tile_generator/templates/src/common/utils.sh'
+						if 'tile_generator/templates/src/templates/all_open.json' in f.get('path'):
+							f['path'] = 'tile_generator/templates/src/templates/all_open.json'
+
+		# Massage expected output to be compared
+		def massage(obj):
+			for release in obj['releases']:
+				if release.get('type'):
+					release['package-type'] = release.pop('type')
+				for package in release.get('packages', []):
+					if package.get('type'):
+						package['package-type'] = package.pop('type')
+				for job in release.get('jobs', []):
+					if job.get('package', {}).get('type'):
+						job['package']['package-type'] = job['package'].pop('type')
+			for package in obj['packages']:
+				package['package-type'] = package.pop('type')
+
 		remove_ignored_keys(expected_output)
-		for release in expected_output['releases']:
-			if release.get('type'):
-				release['package-type'] = release.pop('type')
-			for package in release.get('packages', []):
-				if package.get('type'):
-					package['package-type'] = package.pop('type')
-			for job in release.get('jobs', []):
-				if job.get('package', {}).get('type'):
-					job['package']['package-type'] = job['package'].pop('type')
-		for package in expected_output['packages']:
-			package['package-type'] = package.pop('type')
+		massage(expected_output)
+		fix_path(expected_output)
 
 		# Convert releases to a list of dicts instead of dict of dicts
 		cfg['releases'] = cfg['releases'].values()
@@ -137,6 +151,8 @@ class TestUltimateForm(BaseTest):
 
 		# Hacky way to turn config object into a plain dict
 		d_cfg = json.loads(json.dumps(cfg))
+		# Change the paths to files to be consistent
+		fix_path(d_cfg)
 		new_comparer(expected_output, d_cfg, '[%s]')
 
 		# Just to be double sure :)

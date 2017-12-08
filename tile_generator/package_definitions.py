@@ -79,6 +79,8 @@ class PackageDockerBosh(BasePackage):
     package_type = 'docker-bosh'
     flags = [flag.DockerBosh] # flag.Docker
     _schema = {
+        # TODO: Remove the dependency on this in templates
+        'is_docker': {'type': 'boolean', 'default': True},
         'docker_images': {'required': True},
         'routes': {'required': False, 'type': 'list', 'schema': {'type': 'dict', 'schema': {
             'prefix': {'required': True},
@@ -130,6 +132,9 @@ class PackageDockerApp(BasePackage):
     package_type = 'docker-app'
     flags = [flag.Cf, flag.App] # flag.Docker, flag.DockerApp
     _schema = {
+        # TODO: Remove the dependency on this in templates
+        'is_docker': {'type': 'boolean', 'default': True},
+        'is_docker_app': {'type': 'boolean', 'default': True},
         'manifest': {'type': 'dict', 'allow_unknown': True, 'required': True,
                      'keyschema': {'forbidden': ['path']}, 'schema': {}},
     }
@@ -139,6 +144,9 @@ class PackageDockerAppBroker(BasePackage):
     package_type = 'docker-app-broker'
     flags = [flag.Cf, flag.App, flag.Broker] # flag.Docker flag.BrokerApp, flag.DockerApp,
     _schema = {
+        # TODO: Remove the dependency on this in templates
+        'is_docker': {'type': 'boolean', 'default': True},
+        'is_docker_app': {'type': 'boolean', 'default': True},
         'manifest': {'type': 'dict', 'allow_unknown': True, 'required': True,
                      'keyschema': {'forbidden': ['path']}, 'schema': {}},
     }

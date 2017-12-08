@@ -37,6 +37,9 @@ class FlagBase(object):
 class BoshRelease(FlagBase):
     @classmethod
     def _apply(self, config_obj, package, release):
+        # TODO: Remove the dependency on this in templates
+        package['is_bosh_release'] = True
+
         packagename = package['name']
         properties = {'name': packagename}
         for job in package.get('jobs', []):
@@ -66,6 +69,7 @@ class BoshRelease(FlagBase):
 class Cf(FlagBase):
     @classmethod
     def _apply(self, config_obj, package, release):
+        # TODO: Remove the dependency on this in templates
         package['is_cf'] = True
         release['is_cf'] = True
         release['requires_cf_cli'] = True
@@ -112,6 +116,9 @@ class Cf(FlagBase):
 class DockerBosh(FlagBase):
     @classmethod
     def _apply(self, config_obj, package, release):
+        # TODO: Remove the dependency on this in templates
+        package['is_docker_bosh'] = True
+
         config_obj['requires_docker_bosh'] = True
 
         release['requires_docker_bosh'] = True
@@ -183,6 +190,9 @@ class Decorator(FlagBase):
 class App(FlagBase):
     @classmethod
     def _apply(self, config_obj, package, release):
+        # TODO: Remove the dependency on this in templates
+        package['is_app'] = True
+
         for link_type, link in package.get('consumes', {}).iteritems():
             release['consumes'] = release.get('consumes', {})
             release['consumes'][link_type] = link
@@ -209,6 +219,9 @@ class App(FlagBase):
 class ExternalBroker(FlagBase):
     @classmethod
     def _apply(self, config_obj, package, release):
+        # TODO: Remove the dependency on this in templates
+        package['is_external_broker'] = True
+
         packagename = package['name']
         properties = package.get('properties', {packagename: {}})
         properties[packagename].update(
@@ -223,6 +236,8 @@ class ExternalBroker(FlagBase):
 class Broker(FlagBase):
     @classmethod
     def _apply(self, config_obj, package, release):
+        # TODO: Remove the dependency on this in templates
+        package['is_broker'] = True
         packagename = package['name']
         properties = package.get('properties', {packagename: {}})
         properties[packagename].update(
@@ -235,6 +250,9 @@ class Broker(FlagBase):
 class Buildpack(FlagBase):
     @classmethod
     def _apply(self, config_obj, package, release):
+        # TODO: Remove the dependency on this in templates
+        package['is_buildpack'] = True
+
         packagename = package['name']
         properties = package.get('properties', {packagename: {}})
         properties[packagename].update(
