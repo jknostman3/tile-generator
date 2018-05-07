@@ -281,7 +281,7 @@
     }, 
     {
       "configurable": true, 
-      "default": "tg-test-broker1-service", 
+      "default": "tg_test_broker1-service", 
       "label": "Auto services service name", 
       "name": "auto_service_name", 
       "optional": false, 
@@ -624,7 +624,7 @@
       "properties": [
         {
           "configurable": true, 
-          "default": "tg-test-broker1-service", 
+          "default": "tg_test_broker1-service", 
           "label": "Auto services service name", 
           "name": "auto_service_name", 
           "optional": false, 
@@ -717,23 +717,23 @@
     {
       "app_manifest": {
         "buildpack": "binary_buildpack", 
-        "command": "./binary-app.py", 
+        "command": "./binary_app.py", 
         "memory": "256M", 
-        "path": "binary-app.py"
+        "path": "binary_app.py"
       }, 
       "files": [
         {
-          "name": "binary-app.py", 
-          "path": "src/binary-app/binary-app.py"
+          "name": "binary_app.py", 
+          "path": "src/binary_app/binary_app.py"
         }
       ], 
       "is_app": true, 
       "is_cf": true, 
       "manifest": {
         "buildpack": "binary_buildpack", 
-        "command": "./binary-app.py", 
+        "command": "./binary_app.py", 
         "memory": "256M", 
-        "path": "binary-app.py"
+        "path": "binary_app.py"
       }, 
       "name": "tg_test_binary_app", 
       "package-type": "app", 
@@ -741,9 +741,9 @@
         "tg_test_binary_app": {
           "app_manifest": {
             "buildpack": "binary_buildpack", 
-            "command": "./binary-app.py", 
+            "command": "./binary_app.py", 
             "memory": "256M", 
-            "path": "binary-app.py"
+            "path": "binary_app.py"
           }, 
           "auto_services": [], 
           "name": "tg_test_binary_app"
@@ -799,7 +799,7 @@
       }, 
       "auto_services": [
         {
-          "name": "tg-test-broker1-service", 
+          "name": "tg_test_broker1-service", 
           "plan": "first-plan"
         }, 
         {
@@ -848,7 +848,7 @@
           }, 
           "auto_services": [
             {
-              "name": "tg-test-broker1-service", 
+              "name": "tg_test_broker1-service", 
               "plan": "first-plan"
             }, 
             {
@@ -955,7 +955,7 @@
       }, 
       "auto_services": [
         {
-          "name": "tg-test-broker1-service", 
+          "name": "tg_test_broker1-service", 
           "plan": "second-plan", 
           "service_instance": "tg-test-svc"
         }
@@ -978,7 +978,7 @@
           }, 
           "auto_services": [
             {
-              "name": "tg-test-broker1-service", 
+              "name": "tg_test_broker1-service", 
               "plan": "second-plan", 
               "service_instance": "tg-test-svc"
             }
@@ -1118,7 +1118,7 @@
               }, 
               "auto_services": [
                 {
-                  "name": "tg-test-broker1-service", 
+                  "name": "tg_test_broker1-service", 
                   "plan": "first-plan"
                 }, 
                 {
@@ -1133,7 +1133,7 @@
               }, 
               "auto_services": [
                 {
-                  "name": "tg-test-broker1-service", 
+                  "name": "tg_test_broker1-service", 
                   "plan": "second-plan", 
                   "service_instance": "tg-test-svc"
                 }
@@ -1152,9 +1152,9 @@
             "tg_test_binary_app": {
               "app_manifest": {
                 "buildpack": "binary_buildpack", 
-                "command": "./binary-app.py", 
+                "command": "./binary_app.py", 
                 "memory": "256M", 
-                "path": "binary-app.py"
+                "path": "binary_app.py"
               }, 
               "auto_services": [], 
               "name": "tg_test_binary_app"
@@ -1296,7 +1296,7 @@
               }, 
               "auto_services": [
                 {
-                  "name": "tg-test-broker1-service", 
+                  "name": "tg_test_broker1-service", 
                   "plan": "first-plan"
                 }, 
                 {
@@ -1311,7 +1311,7 @@
               }, 
               "auto_services": [
                 {
-                  "name": "tg-test-broker1-service", 
+                  "name": "tg_test_broker1-service", 
                   "plan": "second-plan", 
                   "service_instance": "tg-test-svc"
                 }
@@ -1330,9 +1330,9 @@
             "tg_test_binary_app": {
               "app_manifest": {
                 "buildpack": "binary_buildpack", 
-                "command": "./binary-app.py", 
+                "command": "./binary_app.py", 
                 "memory": "256M", 
-                "path": "binary-app.py"
+                "path": "binary_app.py"
               }, 
               "auto_services": [], 
               "name": "tg_test_binary_app"
@@ -1509,7 +1509,7 @@
               }, 
               "auto_services": [
                 {
-                  "name": "tg-test-broker1-service", 
+                  "name": "tg_test_broker1-service", 
                   "plan": "first-plan"
                 }, 
                 {
@@ -1524,7 +1524,7 @@
               }, 
               "auto_services": [
                 {
-                  "name": "tg-test-broker1-service", 
+                  "name": "tg_test_broker1-service", 
                   "plan": "second-plan", 
                   "service_instance": "tg-test-svc"
                 }
@@ -1543,9 +1543,9 @@
             "tg_test_binary_app": {
               "app_manifest": {
                 "buildpack": "binary_buildpack", 
-                "command": "./binary-app.py", 
+                "command": "./binary_app.py", 
                 "memory": "256M", 
-                "path": "binary-app.py"
+                "path": "binary_app.py"
               }, 
               "auto_services": [], 
               "name": "tg_test_binary_app"
@@ -1588,7 +1588,7 @@
             "username": "(( .properties.username.value ))", 
             "zip_code": "(( .properties.zip_code.value ))"
           }, 
-          "name": "node-yes", 
+          "name": "node_yes", 
           "properties": {
             "route_registrar": {
               "routes": [
@@ -1603,10 +1603,10 @@
               ]
             }
           }, 
-          "template": "node-yes", 
+          "template": "node_yes", 
           "templates": [
             {
-              "name": "no-op", 
+              "name": "no_op", 
               "release": "no-op-release"
             }, 
             {
@@ -1620,7 +1620,7 @@
               "release": "routing"
             }
           ], 
-          "type": "node-yes", 
+          "type": "node_yes", 
           "varname": "node_yes"
         }, 
         {
@@ -1713,7 +1713,7 @@
               }, 
               "auto_services": [
                 {
-                  "name": "tg-test-broker1-service", 
+                  "name": "tg_test_broker1-service", 
                   "plan": "first-plan"
                 }, 
                 {
@@ -1728,7 +1728,7 @@
               }, 
               "auto_services": [
                 {
-                  "name": "tg-test-broker1-service", 
+                  "name": "tg_test_broker1-service", 
                   "plan": "second-plan", 
                   "service_instance": "tg-test-svc"
                 }
@@ -1747,9 +1747,9 @@
             "tg_test_binary_app": {
               "app_manifest": {
                 "buildpack": "binary_buildpack", 
-                "command": "./binary-app.py", 
+                "command": "./binary_app.py", 
                 "memory": "256M", 
-                "path": "binary-app.py"
+                "path": "binary_app.py"
               }, 
               "auto_services": [], 
               "name": "tg_test_binary_app"
@@ -1792,7 +1792,7 @@
             "username": "(( .properties.username.value ))", 
             "zip_code": "(( .properties.zip_code.value ))"
           }, 
-          "name": "node-no", 
+          "name": "node_no", 
           "properties": {
             "route_registrar": {
               "routes": [
@@ -1807,7 +1807,7 @@
               ]
             }
           }, 
-          "template": "node-no", 
+          "template": "node_no", 
           "templates": [
             {
               "consumes": {
@@ -1820,7 +1820,7 @@
               "release": "routing"
             }
           ], 
-          "type": "node-no", 
+          "type": "node_no", 
           "varname": "node_no"
         }
       ], 
@@ -2126,7 +2126,7 @@
     }, 
     {
       "configurable": true, 
-      "default": "tg-test-broker1-service", 
+      "default": "tg_test_broker1-service", 
       "label": "Auto services service name", 
       "name": "auto_service_name", 
       "optional": false, 
@@ -2222,7 +2222,7 @@
               }, 
               "auto_services": [
                 {
-                  "name": "tg-test-broker1-service", 
+                  "name": "tg_test_broker1-service", 
                   "plan": "first-plan"
                 }, 
                 {
@@ -2237,7 +2237,7 @@
               }, 
               "auto_services": [
                 {
-                  "name": "tg-test-broker1-service", 
+                  "name": "tg_test_broker1-service", 
                   "plan": "second-plan", 
                   "service_instance": "tg-test-svc"
                 }
@@ -2256,9 +2256,9 @@
             "tg_test_binary_app": {
               "app_manifest": {
                 "buildpack": "binary_buildpack", 
-                "command": "./binary-app.py", 
+                "command": "./binary_app.py", 
                 "memory": "256M", 
-                "path": "binary-app.py"
+                "path": "binary_app.py"
               }, 
               "auto_services": [], 
               "name": "tg_test_binary_app"
@@ -2388,7 +2388,7 @@
               }, 
               "auto_services": [
                 {
-                  "name": "tg-test-broker1-service", 
+                  "name": "tg_test_broker1-service", 
                   "plan": "first-plan"
                 }, 
                 {
@@ -2403,7 +2403,7 @@
               }, 
               "auto_services": [
                 {
-                  "name": "tg-test-broker1-service", 
+                  "name": "tg_test_broker1-service", 
                   "plan": "second-plan", 
                   "service_instance": "tg-test-svc"
                 }
@@ -2422,9 +2422,9 @@
             "tg_test_binary_app": {
               "app_manifest": {
                 "buildpack": "binary_buildpack", 
-                "command": "./binary-app.py", 
+                "command": "./binary_app.py", 
                 "memory": "256M", 
-                "path": "binary-app.py"
+                "path": "binary_app.py"
               }, 
               "auto_services": [], 
               "name": "tg_test_binary_app"
@@ -2600,7 +2600,7 @@
               }, 
               "auto_services": [
                 {
-                  "name": "tg-test-broker1-service", 
+                  "name": "tg_test_broker1-service", 
                   "plan": "first-plan"
                 }, 
                 {
@@ -2615,7 +2615,7 @@
               }, 
               "auto_services": [
                 {
-                  "name": "tg-test-broker1-service", 
+                  "name": "tg_test_broker1-service", 
                   "plan": "second-plan", 
                   "service_instance": "tg-test-svc"
                 }
@@ -2634,9 +2634,9 @@
             "tg_test_binary_app": {
               "app_manifest": {
                 "buildpack": "binary_buildpack", 
-                "command": "./binary-app.py", 
+                "command": "./binary_app.py", 
                 "memory": "256M", 
-                "path": "binary-app.py"
+                "path": "binary_app.py"
               }, 
               "auto_services": [], 
               "name": "tg_test_binary_app"
@@ -2771,7 +2771,7 @@
               }, 
               "auto_services": [
                 {
-                  "name": "tg-test-broker1-service", 
+                  "name": "tg_test_broker1-service", 
                   "plan": "first-plan"
                 }, 
                 {
@@ -2786,7 +2786,7 @@
               }, 
               "auto_services": [
                 {
-                  "name": "tg-test-broker1-service", 
+                  "name": "tg_test_broker1-service", 
                   "plan": "second-plan", 
                   "service_instance": "tg-test-svc"
                 }
@@ -2805,9 +2805,9 @@
             "tg_test_binary_app": {
               "app_manifest": {
                 "buildpack": "binary_buildpack", 
-                "command": "./binary-app.py", 
+                "command": "./binary_app.py", 
                 "memory": "256M", 
-                "path": "binary-app.py"
+                "path": "binary_app.py"
               }, 
               "auto_services": [], 
               "name": "tg_test_binary_app"
@@ -2937,7 +2937,7 @@
               }, 
               "auto_services": [
                 {
-                  "name": "tg-test-broker1-service", 
+                  "name": "tg_test_broker1-service", 
                   "plan": "first-plan"
                 }, 
                 {
@@ -2952,7 +2952,7 @@
               }, 
               "auto_services": [
                 {
-                  "name": "tg-test-broker1-service", 
+                  "name": "tg_test_broker1-service", 
                   "plan": "second-plan", 
                   "service_instance": "tg-test-svc"
                 }
@@ -2971,9 +2971,9 @@
             "tg_test_binary_app": {
               "app_manifest": {
                 "buildpack": "binary_buildpack", 
-                "command": "./binary-app.py", 
+                "command": "./binary_app.py", 
                 "memory": "256M", 
-                "path": "binary-app.py"
+                "path": "binary_app.py"
               }, 
               "auto_services": [], 
               "name": "tg_test_binary_app"
@@ -3164,23 +3164,23 @@
         {
           "app_manifest": {
             "buildpack": "binary_buildpack", 
-            "command": "./binary-app.py", 
+            "command": "./binary_app.py", 
             "memory": "256M", 
-            "path": "binary-app.py"
+            "path": "binary_app.py"
           }, 
           "files": [
             {
-              "name": "binary-app.py", 
-              "path": "src/binary-app/binary-app.py"
+              "name": "binary_app.py", 
+              "path": "src/binary_app/binary_app.py"
             }
           ], 
           "is_app": true, 
           "is_cf": true, 
           "manifest": {
             "buildpack": "binary_buildpack", 
-            "command": "./binary-app.py", 
+            "command": "./binary_app.py", 
             "memory": "256M", 
-            "path": "binary-app.py"
+            "path": "binary_app.py"
           }, 
           "name": "tg_test_binary_app", 
           "package-type": "app", 
@@ -3188,9 +3188,9 @@
             "tg_test_binary_app": {
               "app_manifest": {
                 "buildpack": "binary_buildpack", 
-                "command": "./binary-app.py", 
+                "command": "./binary_app.py", 
                 "memory": "256M", 
-                "path": "binary-app.py"
+                "path": "binary_app.py"
               }, 
               "auto_services": [], 
               "name": "tg_test_binary_app"
@@ -3246,7 +3246,7 @@
           }, 
           "auto_services": [
             {
-              "name": "tg-test-broker1-service", 
+              "name": "tg_test_broker1-service", 
               "plan": "first-plan"
             }, 
             {
@@ -3295,7 +3295,7 @@
               }, 
               "auto_services": [
                 {
-                  "name": "tg-test-broker1-service", 
+                  "name": "tg_test_broker1-service", 
                   "plan": "first-plan"
                 }, 
                 {
@@ -3402,7 +3402,7 @@
           }, 
           "auto_services": [
             {
-              "name": "tg-test-broker1-service", 
+              "name": "tg_test_broker1-service", 
               "plan": "second-plan", 
               "service_instance": "tg-test-svc"
             }
@@ -3425,7 +3425,7 @@
               }, 
               "auto_services": [
                 {
-                  "name": "tg-test-broker1-service", 
+                  "name": "tg_test_broker1-service", 
                   "plan": "second-plan", 
                   "service_instance": "tg-test-svc"
                 }
@@ -3579,7 +3579,7 @@
               }, 
               "auto_services": [
                 {
-                  "name": "tg-test-broker1-service", 
+                  "name": "tg_test_broker1-service", 
                   "plan": "first-plan"
                 }, 
                 {
@@ -3594,7 +3594,7 @@
               }, 
               "auto_services": [
                 {
-                  "name": "tg-test-broker1-service", 
+                  "name": "tg_test_broker1-service", 
                   "plan": "second-plan", 
                   "service_instance": "tg-test-svc"
                 }
@@ -3613,9 +3613,9 @@
             "tg_test_binary_app": {
               "app_manifest": {
                 "buildpack": "binary_buildpack", 
-                "command": "./binary-app.py", 
+                "command": "./binary_app.py", 
                 "memory": "256M", 
-                "path": "binary-app.py"
+                "path": "binary_app.py"
               }, 
               "auto_services": [], 
               "name": "tg_test_binary_app"
@@ -3757,7 +3757,7 @@
               }, 
               "auto_services": [
                 {
-                  "name": "tg-test-broker1-service", 
+                  "name": "tg_test_broker1-service", 
                   "plan": "first-plan"
                 }, 
                 {
@@ -3772,7 +3772,7 @@
               }, 
               "auto_services": [
                 {
-                  "name": "tg-test-broker1-service", 
+                  "name": "tg_test_broker1-service", 
                   "plan": "second-plan", 
                   "service_instance": "tg-test-svc"
                 }
@@ -3791,9 +3791,9 @@
             "tg_test_binary_app": {
               "app_manifest": {
                 "buildpack": "binary_buildpack", 
-                "command": "./binary-app.py", 
+                "command": "./binary_app.py", 
                 "memory": "256M", 
-                "path": "binary-app.py"
+                "path": "binary_app.py"
               }, 
               "auto_services": [], 
               "name": "tg_test_binary_app"
@@ -3959,7 +3959,7 @@
               }, 
               "auto_services": [
                 {
-                  "name": "tg-test-broker1-service", 
+                  "name": "tg_test_broker1-service", 
                   "plan": "first-plan"
                 }, 
                 {
@@ -3974,7 +3974,7 @@
               }, 
               "auto_services": [
                 {
-                  "name": "tg-test-broker1-service", 
+                  "name": "tg_test_broker1-service", 
                   "plan": "second-plan", 
                   "service_instance": "tg-test-svc"
                 }
@@ -3993,9 +3993,9 @@
             "tg_test_binary_app": {
               "app_manifest": {
                 "buildpack": "binary_buildpack", 
-                "command": "./binary-app.py", 
+                "command": "./binary_app.py", 
                 "memory": "256M", 
-                "path": "binary-app.py"
+                "path": "binary_app.py"
               }, 
               "auto_services": [], 
               "name": "tg_test_binary_app"
@@ -4038,7 +4038,7 @@
             "username": "(( .properties.username.value ))", 
             "zip_code": "(( .properties.zip_code.value ))"
           }, 
-          "name": "node-yes", 
+          "name": "node_yes", 
           "properties": {
             "route_registrar": {
               "routes": [
@@ -4053,10 +4053,10 @@
               ]
             }
           }, 
-          "template": "node-yes", 
+          "template": "node_yes", 
           "templates": [
             {
-              "name": "no-op", 
+              "name": "no_op", 
               "release": "no-op-release"
             }, 
             {
@@ -4070,7 +4070,7 @@
               "release": "routing"
             }
           ], 
-          "type": "node-yes", 
+          "type": "node_yes", 
           "varname": "node_yes"
         }, 
         {
@@ -4163,7 +4163,7 @@
               }, 
               "auto_services": [
                 {
-                  "name": "tg-test-broker1-service", 
+                  "name": "tg_test_broker1-service", 
                   "plan": "first-plan"
                 }, 
                 {
@@ -4178,7 +4178,7 @@
               }, 
               "auto_services": [
                 {
-                  "name": "tg-test-broker1-service", 
+                  "name": "tg_test_broker1-service", 
                   "plan": "second-plan", 
                   "service_instance": "tg-test-svc"
                 }
@@ -4197,9 +4197,9 @@
             "tg_test_binary_app": {
               "app_manifest": {
                 "buildpack": "binary_buildpack", 
-                "command": "./binary-app.py", 
+                "command": "./binary_app.py", 
                 "memory": "256M", 
-                "path": "binary-app.py"
+                "path": "binary_app.py"
               }, 
               "auto_services": [], 
               "name": "tg_test_binary_app"
@@ -4242,7 +4242,7 @@
             "username": "(( .properties.username.value ))", 
             "zip_code": "(( .properties.zip_code.value ))"
           }, 
-          "name": "node-no", 
+          "name": "node_no", 
           "properties": {
             "route_registrar": {
               "routes": [
@@ -4257,7 +4257,7 @@
               ]
             }
           }, 
-          "template": "node-no", 
+          "template": "node_no", 
           "templates": [
             {
               "consumes": {
@@ -4270,7 +4270,7 @@
               "release": "routing"
             }
           ], 
-          "type": "node-no", 
+          "type": "node_no", 
           "varname": "node_no"
         }
       ], 
@@ -4290,14 +4290,14 @@
   }, 
   "runtime_configs": [
     {
-      "name": "example-runtime-config", 
+      "name": "example_runtime_config", 
       "runtime_config": {
         "addons": [
           {
             "include": {
               "jobs": [
                 {
-                  "name": "no-op", 
+                  "name": "no_op", 
                   "release": "no-op-release"
                 }
               ]
