@@ -281,7 +281,7 @@
     }, 
     {
       "configurable": true, 
-      "default": "tg_test_broker1-service", 
+      "default": "tg-test-broker1-service", 
       "label": "Auto services service name", 
       "name": "auto_service_name", 
       "optional": false, 
@@ -624,7 +624,7 @@
       "properties": [
         {
           "configurable": true, 
-          "default": "tg_test_broker1-service", 
+          "default": "tg-test-broker1-service", 
           "label": "Auto services service name", 
           "name": "auto_service_name", 
           "optional": false, 
@@ -2126,7 +2126,7 @@
     }, 
     {
       "configurable": true, 
-      "default": "tg_test_broker1-service", 
+      "default": "tg-test-broker1-service", 
       "label": "Auto services service name", 
       "name": "auto_service_name", 
       "optional": false, 

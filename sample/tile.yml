@@ -211,7 +211,7 @@ forms:
   - name: auto_service_name
     type: string
     label: Auto services service name
-    default: tg_test_broker1-service
+    default: tg-test-broker1-service
 
 update:
   canary_watch_time: 10000-(( .properties.canary_watch_timeout ))
