@@ -1,10 +1,74 @@
-.prop {
-  border: solid;
+
+h2 {
+    background-color: #01b7a8;
+    text-align: center;
+    padding: 20px;
+	  color: white;
 }
 
-#propContainer, #formContainer {
+h3 {
+  background-color: white;
+}
+
+input[type=text], select {
+  width: 100%;
+  padding: 12px 20px;
+  margin: 8px 0;
+  display: inline-block;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+input[type=textarea] {
+  width: 100%;
+  padding: 12px 20px;
+  margin: 8px 0;
+  display: inline-block;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+#topfields {
+  width: 100%;
+  padding: 12px 20px;
+  margin: 8px 0;
+  display: inline-block;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+
+.prop {
+  border: 2 px solid #ccc;
+  padding: 12px 20px;
+  margin: 8px 0;
+  display: inline-block;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+.form {
+  border: 2 px solid #ccc;
+  padding: 12px 20px;
+  margin: 8px 0;
+  display: inline-block;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+#propContainer, #formContainer, #pkgContainer, #output {
   height: 210px;
   overflow-x: auto;
+  width: 100%;
+  padding: 12px 20px;
+  margin: 8px 0;
+  display: inline-block;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
 }
 
 i {
@@ -19,4 +83,16 @@ i {
 .open i {
   transform: rotate(45deg);
   -webkit-transform: rotate(45deg);
+}
+
+
+.button {
+    background-color: #01b7a8; /* Green */
+    border: none;
+    color: white;
+    padding: 15px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
 }
